@@ -45,35 +45,12 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 }
 
 void getLineNumberv(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> &tabvy, std::vector<char> &tabvz, std::vector<int> &tabv, std::vector<std::vector<int> > &taballv){
-    //std::string myString;
-    //printf("%s","Salut mongolien de codeblock");
-    //tabv.push_back(5);
-    //printf("%d",tabv.size()&INT_MAX);
-  //int counterligne = 1;
-   /* getline(myFile, myString);
-    for(int j =0;j<28;j++){
-        std::cout << myString[j];
-    }
-    getline(myFile, myString);
-    for(int j =0;j<28;j++){
-        std::cout << myString[j];
-    }*/
-    //printf("%s\n",myString.c_str());
-    //printf("%d",myString.size()&INT_MAX);
-    //std::cout << myString[0];
-    //std::cout << "lolol";
+
     while (!myFile.eof())
     {
         std::string myString;
         getline(myFile, myString);
-         //if ((myString[0] == 'v') && (myString[1] == ' ')) {
-        //printf("%s\n",myString.c_str());
-        // }
-        //std::cout << myString[3] << " ";
-	  //	for(size_t i = 0; i<myString.size(); ++i){
-	  //std::cout << myString << endl;
-	  //printf("%s\n",myString.c_str());
-	  //printf("%s","Salut mongolien de codeblockssss");
+
 
 	  int taille = myString.size() & INT_MAX;
 	  if ((myString[0] == 'v') && (myString[1] == ' ')) {
@@ -120,26 +97,14 @@ void getLineNumberv(ifstream &myFile,std::vector<char> &tabvx, std::vector<char>
 		  issx >> nombrex;
 		  issy >> nombrey;
 		  issz >> nombrez;
-		 // std::cout << nombrex;
-		//  std::cout << nombrey;
-		//  std::cout << nombrez;
+
         nombrex += 400;
 		nombrey += 400;
 		nombrez += 400;
 		  tabv.push_back(nombrex);
 		  tabv.push_back(nombrey);
 		  tabv.push_back(nombrez);
-		 // for(int y =0;y<3;y++){
-		//  std::cout << tabv[y];
 
-		//  std::cout << tabv[0];
-		//  std::cout << tabv[1];
-        //  std::cout << tabv[2];
-        //  std::cout << "     ";
-		 // }
-		//  std::cout << " taille :" << tabv.size() << " ";
-		//  std::cout << " ";
-        //    std::cout << tabv.end();
           taballv.push_back(tabv);
 		  tabv.pop_back();
 		  tabv.pop_back();
@@ -147,11 +112,7 @@ void getLineNumberv(ifstream &myFile,std::vector<char> &tabvx, std::vector<char>
 		  tabvx.clear();
 		  tabvy.clear();
 		  tabvz.clear();
-          //printf("%d",tabv.size()&INT_MAX);
-          //printf("%s","Salut mongolien de codeblock");
 
-		 // std::cout << " tailletaballv :" << taballv.size() << " ";
-		 // std::cout << taballv[1].size();
 	  }
 
 
@@ -167,18 +128,12 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
 
 
 
-   // std::string line;
-   // std::string line2;
-
-  // int nbline = getLineNumberv(ifstream file);
 
     file.open("african_head.obj");
     file2.open("african_head.obj");
     getLineNumberv(file, tabvx, tabvy, tabvz, tabv, taballv);
 
-    // GESTION DES POINTEURS (la taille est vide)
-   // std::cout << " tailletaballv :" << taballv.size() << " ";
-    //std::cout << taballv[0][1];
+
     std::vector<char> sommet1;
     std::vector<char> sommet2;
     std::vector<char> sommet3;
@@ -240,44 +195,26 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
 		  issx >> nombre1;
 		  issy >> nombre2;
 		  issz >> nombre3;
-		  //std::cout << "mon premier noeud : " << nombre1;
-         // std::cout << &taballv[nombre1][0];
-         int x0;
-         int x1;
-         int y0;
-         int y1;
 
-         x0 = taballv[nombre1-1][0];
-         y0 = taballv[nombre1-1][1];
-         x1 = taballv[nombre2-1][0];
-         y1 = taballv[nombre2-1][1];
+         //int x0;
+        // int x1;
+        // int y0;
+        // int y1;
+
+         //x0 = taballv[nombre1-1][0];
+        // y0 = taballv[nombre1-1][1];
+        // x1 = taballv[nombre2-1][0];
+        // y1 = taballv[nombre2-1][1];
          //line(100,200,700,400,*Img,red);
          //line(50,50,200,30,image,white);
-           line(x0,y0,x1,y1,*Img,red);
+           line(taballv[nombre1-1][0],taballv[nombre1-1][1],taballv[nombre2-1][0],taballv[nombre2-1][1],*Img,red);
            line(taballv[nombre2-1][0],taballv[nombre2-1][1],taballv[nombre3-1][0],taballv[nombre3-1][1],*Img,red);
            line(taballv[nombre1-1][0],taballv[nombre1-1][1],taballv[nombre3-1][0],taballv[nombre3-1][1],*Img,red);
          sommet1.clear();
          sommet2.clear();
          sommet3.clear();
 	  }
-  /*  for(size_t i; i<line.size(); i++){
-    char c = line[i];
-    printf("carac %lo : %c",i,c);
-    }*/
-  /* while(!file.eof()){
 
-
-    getline(file, line);
-    if(line.at(0) == 'v'){
-
-      for(size_t i; i<line.size(); i++){
-
-	getline(file, line2);
-	printf("%s \n",line1.c_str());
-	printf("%s",line2.c_str());
-
-      }
-      }*/
   }
 
 }
