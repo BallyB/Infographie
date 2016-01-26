@@ -6,7 +6,7 @@
 #include <vector>
 #include <climits>
 #include <sstream>
-
+#include <algorithm>
 
 using std::ifstream;
 
@@ -154,7 +154,7 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
     std::vector<char> sommet1;
     std::vector<char> sommet2;
     std::vector<char> sommet3;
-    int count = 0;
+    //int count = 0;
     while (!file2.eof())
     {
        // std::cout << "ligne fini";
@@ -199,35 +199,39 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
 			 sommet3.push_back(c);
 			  i++;
 		  }
-		  std::string strx(sommet1.begin(), sommet1.end());
-		  std::string stry(sommet2.begin(), sommet2.end());
-		  std::string strz(sommet3.begin(), sommet3.end());
-		  std::istringstream issx(strx);
-		  std::istringstream issy(stry);
-		  std::istringstream issz(strz);
-		  int nombre1;
-		  int nombre2;
-		  int nombre3;
-		  issx >> nombre1;
-		  issy >> nombre2;
-		  issz >> nombre3;
-          int Ax = taballv[nombre1-1][0];
-          int Ay = taballv[nombre1-1][1];
-          int Bx = taballv[nombre2-1][0];
-          int By = taballv[nombre2-1][1];
-          int Cx = taballv[nombre3-1][0];
-          int Cy = taballv[nombre3-1][1];
+        std::string strx(sommet1.begin(), sommet1.end());
+        std::string stry(sommet2.begin(), sommet2.end());
+        std::string strz(sommet3.begin(), sommet3.end());
+        std::istringstream issx(strx);
+        std::istringstream issy(stry);
+        std::istringstream issz(strz);
+        int nombre1;
+        int nombre2;
+        int nombre3;
+        issx >> nombre1;
+        issy >> nombre2;
+        issz >> nombre3;
+        int Ax = taballv[nombre1-1][0];
+        int Ay = taballv[nombre1-1][1];
+        int Bx = taballv[nombre2-1][0];
+        int By = taballv[nombre2-1][1];
+        int Cx = taballv[nombre3-1][0];
+        int Cy = taballv[nombre3-1][1];
+        int starty = std::max(std::max(Ay,By),Cy);
+        int startx = std::min(std::min(Ax,Bx),Cx);
+        int endx = std::max(std::max(Ax,Bx),Cx);
+        int endy = std::min(std::min(Ay,By),Cy);
+        float denominateur = (((Bx-Ax)*(Cy-Ay))-((Cx-Ax)*(By-Ay)));
 
-            if(count < 15){
 
+        float coeff = 1./denominateur;
 
-          float denominateur = (((Bx-Ax)*(Cy-Ay))-((Cx-Ax)*(By-Ay)));
-
-          float coeff = 1./denominateur;
-            for(int i = 0; i<=600; i++){
-            for(int j = 0; j<=600;j++){
+       // cout << "Mon point de depart : " << startx << starty << "Mon point d'arrivée : " << endx << endy;
+        for(int i = starty; i>=endy; i--){
+            for(int j = startx; j<=endx;j++){
                 int Px = j;
                 int Py = i;
+                //image.set(Px, Py, red);
                 float u = (coeff*(Cy-Ay))*(Px-Ax)+(coeff*(Ax-Cx))*(Py-Ay);
                 float v = (coeff*(Ay-By))*(Px-Ax)+(coeff*(Bx-Ax))*(Py-Ay);
                 float w = 1-u-v;
@@ -237,16 +241,14 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
                     Img->set(Px, Py, white);
                 }
             }
-            }
+        }
+        line(taballv[nombre1-1][0],taballv[nombre1-1][1],taballv[nombre2-1][0],taballv[nombre2-1][1],*Img,white);
+        line(taballv[nombre2-1][0],taballv[nombre2-1][1],taballv[nombre3-1][0],taballv[nombre3-1][1],*Img,white);
+        line(taballv[nombre1-1][0],taballv[nombre1-1][1],taballv[nombre3-1][0],taballv[nombre3-1][1],*Img,white);
+        sommet1.clear();
+        sommet2.clear();
+        sommet3.clear();
 
-            }
-         // line(taballv[nombre1-1][0],taballv[nombre1-1][1],taballv[nombre2-1][0],taballv[nombre2-1][1],*Img,white);
-        //  line(taballv[nombre2-1][0],taballv[nombre2-1][1],taballv[nombre3-1][0],taballv[nombre3-1][1],*Img,white);
-         // line(taballv[nombre1-1][0],taballv[nombre1-1][1],taballv[nombre3-1][0],taballv[nombre3-1][1],*Img,white);
-         sommet1.clear();
-         sommet2.clear();
-         sommet3.clear();
-         count++;
 	  }
 
   }
