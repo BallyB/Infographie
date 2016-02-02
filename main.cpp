@@ -243,7 +243,11 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
     file.open("african_head.obj");
     file2.open("african_head.obj");
     getLineCoordV(file, tabvx, tabvy, tabvz, tabv, taballv);
-    getLineCoordTexture(file3);
+    //getLineCoordTexture(file3);
+    /* Lecture du fichier pour recup les ligne vt avec u et v
+    recup de f x/x/x et le deuxieme est la ligne correspondante.
+    u et v sont les coord du point dans la texture : utiliser read_tga_file pour ouvrir la texture*/
+
 
 
     std::vector<char> sommet1;
