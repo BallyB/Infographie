@@ -7,6 +7,7 @@
 #include <climits>
 #include <sstream>
 #include <algorithm>
+#include <limits>
 
 using std::ifstream;
 
@@ -24,11 +25,11 @@ Cx Cy
 
 on a notre point qu'on test Px Py
 je cherche u,v tel que P = (1-u-v)A + uB + vC)
-cette Ã©quation vient du repere cartÃ©sien
+cette équation vient du repere cartésien
 Px = (1-u-v)Ax+ uBx + vCx
 Py = (1-u-v)Ay+ uBy + vCy
 On parcourt tout les pixels de l'image,
-On regarde les coordonnÃ©es barycentrique de ce pixel par rapport au triangle,
+On regarde les coordonnées barycentrique de ce pixel par rapport au triangle,
 si au moin un pixel est negatif alors on jette pixel
 
 
@@ -64,7 +65,7 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     }
 }
 
-void getLineNumberv(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> &tabvy, std::vector<char> &tabvz, std::vector<int> &tabv, std::vector<std::vector<int> > &taballv){
+void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> &tabvy, std::vector<char> &tabvz, std::vector<int> &tabv, std::vector<std::vector<int> > &taballv){
 
     while (!myFile.eof())
     {
@@ -118,9 +119,9 @@ void getLineNumberv(ifstream &myFile,std::vector<char> &tabvx, std::vector<char>
 		  issy >> nombrey;
 		  issz >> nombrez;
 
-        nombrex += 300;
-		nombrey += 300;
-		nombrez += 300;
+          nombrex += 300;
+		  nombrey += 300;
+		  nombrez += 300;
 		  tabv.push_back(nombrex);
 		  tabv.push_back(nombrey);
 		  tabv.push_back(nombrez);
@@ -143,7 +144,7 @@ void getLineNumberv(ifstream &myFile,std::vector<char> &tabvx, std::vector<char>
   myFile.close();
 }
 
-void barymetricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx, int Cy, int Cz){
+void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx, int Cy, int Cz, int zbuffer[][600]){
 
     int starty = std::max(std::max(Ay,By),Cy);
     int startx = std::min(std::min(Ax,Bx),Cx);
@@ -155,8 +156,9 @@ void barymetricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx
 
 
     float coeff = 1./denominateur;
+    TGAColor rndcolor = TGAColor(rand()%255, rand()%255, 255, 255);
 
-       // cout << "Mon point de depart : " << startx << starty << "Mon point d'arrivÃ©e : " << endx << endy;
+       // cout << "Mon point de depart : " << startx << starty << "Mon point d'arrivée : " << endx << endy;
     for(int i = starty; i>=endy; i--){
         for(int j = startx; j<=endx;j++){
             int Px = j;
@@ -168,7 +170,18 @@ void barymetricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx
             if (u < 0 || v < 0 || w < 0){
 
             }else{
-                Img->set(Px, Py, white);
+                int Pz = u*Az+v*Bz+w*Cz;
+                if(zbuffer[Px][Py]>Pz){
+                    continue;
+
+                }else{
+                    zbuffer[Px][Py] = Pz;
+                    Img->set(Px, Py, rndcolor);
+                }
+
+
+
+
             }
         }
     }
@@ -210,24 +223,6 @@ void lineSweepingMethod(int Ax, int Ay, int Bx, int By, int Cx, int Cy){
         }
     }
 
-  /*  if (Ay==By && Ay==Cy) return; // i dont care about degenerate triangles
-    // sort the vertices, t0, t1, t2 lowerâˆ’toâˆ’upper (bubblesort yay!)
-    if (Ay>By) std::swap(t0, t1);
-    if (t0.y>t2.y) std::swap(t0, t2);
-    if (t1.y>t2.y) std::swap(t1, t2);
-    int total_height = t2.y-t0.y;
-    for (int i=0; i<total_height; i++) {
-        bool second_half = i>t1.y-t0.y || t1.y==t0.y;
-        int segment_height = second_half ? t2.y-t1.y : t1.y-t0.y;
-        float alpha = (float)i/total_height;
-        float beta  = (float)(i-(second_half ? t1.y-t0.y : 0))/segment_height; // be careful: with above conditions no division by zero here
-        Vec2i A =               t0 + (t2-t0)*alpha;
-        Vec2i B = second_half ? t1 + (t2-t1)*beta : t0 + (t1-t0)*beta;
-        if (A.x>B.x) std::swap(A, B);
-        for (int j=A.x; j<=B.x; j++) {
-            image.set(j, t0.y+i, color); // attention, due to int casts t0.y+i != A.y
-        }
-    }*/
 
 }
 void drawTriangle(int Ax, int Ay, int Bx, int By, int Cx, int Cy, TGAColor color){
@@ -238,9 +233,17 @@ void drawTriangle(int Ax, int Ay, int Bx, int By, int Cx, int Cy, TGAColor color
 }
 void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::vector<char> &tabvy, std::vector<char> &tabvz, std::vector<int> &tabv, std::vector<std::vector<int> > &taballv){
 
+    int zbuffer[600][600];
+    for (int i=0; i<600; i++) {
+        for(int j=0; j<600; j++){
+            zbuffer[i][j] = std::numeric_limits<int>::min();
+        }
+
+    }
     file.open("african_head.obj");
     file2.open("african_head.obj");
-    getLineNumberv(file, tabvx, tabvy, tabvz, tabv, taballv);
+    getLineCoordV(file, tabvx, tabvy, tabvz, tabv, taballv);
+    getLineCoordTexture(file3);
 
 
     std::vector<char> sommet1;
@@ -313,10 +316,10 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
         int Cy = taballv[nombre3-1][1];
         int Cz = taballv[nombre3-1][2];
 
-        barymetricFullMethod(Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz);
+        barycentricFullMethod(Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, zbuffer);
         //lineSweepingMethod(Ax,Ay,Bx,By,Cx,Cy);
-       // std::cout << "Triangle dessinÃ©";
-        drawTriangle(Ax,Ay,Bx,By,Cx,Cy,white);
+       // std::cout << "Triangle dessiné";
+       // drawTriangle(Ax,Ay,Bx,By,Cx,Cy,white);
 
         sommet1.clear();
         sommet2.clear();
@@ -331,15 +334,19 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
 
 
 int main(int argc, char** argv) {
+
     std::vector<char> tabvx;
     std::vector<char> tabvy;
     std::vector<char> tabvz;
     std::vector<int> tabv;
     std::vector<std::vector<int> > taballv;
+    int height;
+    int width;
     TGAImage image(600, 600, TGAImage::RGB);
     Img = &image;
     ifstream file;
     ifstream file2;
+    ifstream file3;
     parsefile(file, file2, tabvx, tabvy, tabvz, tabv, taballv);
     image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
     image.write_tga_file("output.tga");
