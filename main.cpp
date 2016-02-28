@@ -156,7 +156,7 @@ void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> 
   myFile.close();
 }
 
-void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx, int Cy, int Cz, int Atexturex, int Atexturey, int Btexturex, int Btexturey, int Ctexturex, int Ctexturey, int zbuffer[600][600]){
+void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx, int Cy, int Cz, double Atexturex, double Atexturey, double Btexturex, double Btexturey, double Ctexturex, double Ctexturey, int zbuffer[600][600]){
 
     int starty = std::max(std::max(Ay,By),Cy);
     int startx = std::min(std::min(Ax,Bx),Cx);
@@ -164,11 +164,11 @@ void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int C
     int endy = std::min(std::min(Ay,By),Cy);
 
 
-    float denominateur = (((Bx-Ax)*(Cy-Ay))-((Cx-Ax)*(By-Ay)));
+    double denominateur = (((Bx-Ax)*(Cy-Ay))-((Cx-Ax)*(By-Ay)));
 
 
-    float coeff = 1./denominateur;
-    TGAColor rndcolor = TGAColor(rand()%255, rand()%255, 255, 255);
+    double coeff = 1./denominateur;
+   // TGAColor rndcolor = TGAColor(rand()%255, rand()%255, 255, 255);
 
        // cout << "Mon point de depart : " << startx << starty << "Mon point d'arrivée : " << endx << endy;
     for(int i = starty; i>=endy; i--){
@@ -176,16 +176,15 @@ void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int C
             int Px = j;
             int Py = i;
                 //image.set(Px, Py, red);
-            float u = (coeff*(Cy-Ay))*(Px-Ax)+(coeff*(Ax-Cx))*(Py-Ay);
-            float v = (coeff*(Ay-By))*(Px-Ax)+(coeff*(Bx-Ax))*(Py-Ay);
-            float w = 1-u-v;
+            double u = (coeff*(Cy-Ay))*(Px-Ax)+(coeff*(Ax-Cx))*(Py-Ay);
+            double v = (coeff*(Ay-By))*(Px-Ax)+(coeff*(Bx-Ax))*(Py-Ay);
+            double w = 1-u-v;
             if (u < -1e-5 || v < -1e-5 || w < -1e-5){
             //if (u < 0 || v < 0 || w < 0){
 
             }else{
-                int Pz = u*Az+v*Bz+w*Cz;
-                int TextPx = u*Atexturex+v*Btexturex+w*Ctexturex;
-                int TextPy = u*Atexturey+v*Btexturey+w*Ctexturey;
+                double Pz = w*Az+u*Bz+v*Cz;
+
 
               // Pour la texture  int (Pu,Pv) = u*(Au,Av)+v*(Bu,Bv)+w*(Cu,Cv);
 
@@ -194,6 +193,8 @@ void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int C
 
                 }else{
                     zbuffer[Px][Py] = Pz;
+                    int TextPx = (w*Atexturex+u*Btexturex+v*Ctexturex) * Imgtexture->get_width();
+                    int TextPy = (w*Atexturey+u*Btexturey+v*Ctexturey) * Imgtexture->get_height();
                   //  std::cout << Px << " x \n";
                   //  std::cout << Py;
                     Img->set(Px, Py, Imgtexture->get(TextPx,TextPy));
@@ -294,8 +295,8 @@ void getLineCoordVt(ifstream &myFile,std::vector<char> &tabvtx, std::vector<char
 		//  issy >> nombrey;
           double nombrex = atof(strx.c_str());
           double nombrey = atof(stry.c_str());
-          nombrex *= 600;
-		  nombrey *= 600;
+       //   nombrex *= 600;
+		//  nombrey *= 600;
 		  //std::cout << nombrex << " nombre x et "<< nombrey << " nombre y"<< std::endl;
 		  tabvt.push_back(nombrex);
 		  tabvt.push_back(nombrey);
@@ -343,6 +344,7 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
     std::vector<char> couleursommet2;
     std::vector<char> couleursommet3;
     //int count = 0;
+    int cpt = 0;
     while (!file2.eof())
     {
        // std::cout << "ligne fini";
@@ -351,6 +353,7 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
 
         //int taille = myString.size() & INT_MAX;
 	  if ((myString[0] == 'f') && (myString[1] == ' ')) {
+             cpt++;
         myString.erase(myString.begin(),myString.begin()+2);
 		  int i = 0;
 		  while (myString[i] == ' ') {
@@ -455,7 +458,15 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
         double Cz = taballv[nombre3-1][2];
         double Ctexturex = taballvt[nombre3vt-1][0];
         double Ctexturey = taballvt[nombre3vt-1][1];
-
+       // std::cout << cpt;
+       // if (cpt < 6){
+     //       std::cout << cpt << std::endl;
+            //std::cout << " Ax : " << Ax << " Ay : " << Ay << " Az : " << Az << std::endl;
+     //       std::cout << " Atexturex : " << Atexturex << " Atexturey  : " << Atexturey << std::endl;
+     //       std::cout << " Btexturex : " << Btexturex << " Btexturey  : " << Btexturey << std::endl;
+     //       std::cout << " Ctexturex : " << Ctexturex << " Ctexturey  : " << Ctexturey << std::endl;
+      //  }
+       // std::cout << "PD";
         barycentricFullMethod(Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, Atexturex, Atexturey, Btexturex, Btexturey, Ctexturex, Ctexturey, zbuffer);
         //lineSweepingMethod(Ax,Ay,Bx,By,Cx,Cy);
        // std::cout << "Triangle dessiné";
@@ -469,6 +480,7 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
         couleursommet3.clear();
 
 	  }
+
 
   }
 
@@ -593,6 +605,7 @@ int main(int argc, char** argv) {
     //texture.get_height();
    // texture.read_tga_file("african_head_diffuse.tga");
     Img = &image;
+    imagetexture.flip_vertically();
     Imgtexture = &imagetexture;
     ifstream file;
     ifstream file2;
