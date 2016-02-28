@@ -14,7 +14,17 @@ using std::ifstream;
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 TGAImage* Img;
-
+TGAImage* Imgtexture;
+std::vector<char> tabvx;
+std::vector<char> tabvy;
+std::vector<char> tabvz;
+std::vector<double> tabv;
+std::vector<char> tabvtx;
+std::vector<char> tabvty;
+std::vector<double> tabvt;
+std::vector<std::vector<double> > taballvt;
+std::vector<std::vector<double> > taballv;
+int zbuffer[600][600];
 
 // COodonnees barycentrique
 
@@ -65,7 +75,7 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     }
 }
 
-void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> &tabvy, std::vector<char> &tabvz, std::vector<int> &tabv, std::vector<std::vector<int> > &taballv){
+void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> &tabvy, std::vector<char> &tabvz, std::vector<double> &tabv, std::vector<std::vector<double> > &taballv){
 
     while (!myFile.eof())
     {
@@ -109,22 +119,24 @@ void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> 
 		  std::string strx(tabvx.begin(), tabvx.end());
 		  std::string stry(tabvy.begin(), tabvy.end());
 		  std::string strz(tabvz.begin(), tabvz.end());
-		  std::istringstream issx(strx);
-		  std::istringstream issy(stry);
-		  std::istringstream issz(strz);
-		  int nombrex;
-		  int nombrey;
-		  int nombrez;
-		  issx >> nombrex;
-		  issy >> nombrey;
-		  issz >> nombrez;
-
-          nombrex += 300;
-		  nombrey += 300;
-		  nombrez += 300;
-		  tabv.push_back(nombrex);
-		  tabv.push_back(nombrey);
-		  tabv.push_back(nombrez);
+		 // std::istringstream issx(strx);
+		 // std::istringstream issy(stry);
+		 // std::istringstream issz(strz);
+		 // int nombrex;
+		 // int nombrey;
+		 // int nombrez;
+		 // issx >> nombrex;
+		//  issy >> nombrey;
+		 // issz >> nombrez;
+          double x = atof(strx.c_str());
+          double y = atof(stry.c_str());
+          double z = atof(strz.c_str());
+          x += 300;
+		  y += 300;
+		  z += 300;
+		  tabv.push_back(x);
+		  tabv.push_back(y);
+		  tabv.push_back(z);
 
           taballv.push_back(tabv);
 		  tabv.pop_back();
@@ -144,7 +156,7 @@ void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> 
   myFile.close();
 }
 
-void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx, int Cy, int Cz, int zbuffer[][600]){
+void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx, int Cy, int Cz, int Atexturex, int Atexturey, int Btexturex, int Btexturey, int Ctexturex, int Ctexturey, int zbuffer[600][600]){
 
     int starty = std::max(std::max(Ay,By),Cy);
     int startx = std::min(std::min(Ax,Bx),Cx);
@@ -167,16 +179,24 @@ void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int C
             float u = (coeff*(Cy-Ay))*(Px-Ax)+(coeff*(Ax-Cx))*(Py-Ay);
             float v = (coeff*(Ay-By))*(Px-Ax)+(coeff*(Bx-Ax))*(Py-Ay);
             float w = 1-u-v;
-            if (u < 0 || v < 0 || w < 0){
+            if (u < -1e-5 || v < -1e-5 || w < -1e-5){
+            //if (u < 0 || v < 0 || w < 0){
 
             }else{
                 int Pz = u*Az+v*Bz+w*Cz;
+                int TextPx = u*Atexturex+v*Btexturex+w*Ctexturex;
+                int TextPy = u*Atexturey+v*Btexturey+w*Ctexturey;
+
+              // Pour la texture  int (Pu,Pv) = u*(Au,Av)+v*(Bu,Bv)+w*(Cu,Cv);
+
                 if(zbuffer[Px][Py]>Pz){
                     continue;
 
                 }else{
                     zbuffer[Px][Py] = Pz;
-                    Img->set(Px, Py, rndcolor);
+                  //  std::cout << Px << " x \n";
+                  //  std::cout << Py;
+                    Img->set(Px, Py, Imgtexture->get(TextPx,TextPy));
                 }
 
 
@@ -231,9 +251,69 @@ void drawTriangle(int Ax, int Ay, int Bx, int By, int Cx, int Cy, TGAColor color
     line(Bx,By,Cx,Cy,*Img,color);
 
 }
-void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::vector<char> &tabvy, std::vector<char> &tabvz, std::vector<int> &tabv, std::vector<std::vector<int> > &taballv){
 
-    int zbuffer[600][600];
+void getLineCoordVt(ifstream &myFile,std::vector<char> &tabvtx, std::vector<char> &tabvty, std::vector<double> &tabvt, std::vector<std::vector<double> > &taballvt){
+//int cpt = 0;
+    while (!myFile.eof())
+    {
+
+        std::string myString;
+        getline(myFile, myString);
+
+
+	  int taille = myString.size() & INT_MAX;
+      //std::cout<<myString[1];
+	  if ((myString[0] == 'v') && (myString[1] == 't') && (myString[2] == ' ')) {
+      //  cpt++;//std::cout << "la ta mere";
+        myString.erase(myString.begin(),myString.begin()+3);
+		  int i = 0;
+		  while (myString[i] == ' ') {
+			  i++;
+		  }
+		  while (myString[i] != ' ') {
+			  char c = myString[i];
+
+			  tabvtx.push_back(c);
+			  i++;
+		  }
+		  while (myString[i] == ' ') {
+			  i++;
+		  }
+		  while (myString[i] != ' ') {
+			  char c = myString[i];
+			  tabvty.push_back(c);
+			  i++;
+		  }
+		  std::string strx(tabvtx.begin(), tabvtx.end());
+		  std::string stry(tabvty.begin(), tabvty.end());
+		  //std::istringstream issx(strx);
+		  //std::istringstream issy(stry);
+		  //int nombrex;
+		 // int nombrey;
+		  //issx >> nombrex;
+		//  issy >> nombrey;
+          double nombrex = atof(strx.c_str());
+          double nombrey = atof(stry.c_str());
+          nombrex *= 600;
+		  nombrey *= 600;
+		  //std::cout << nombrex << " nombre x et "<< nombrey << " nombre y"<< std::endl;
+		  tabvt.push_back(nombrex);
+		  tabvt.push_back(nombrey);
+
+          taballvt.push_back(tabvt);
+		  tabvt.pop_back();
+		  tabvt.pop_back();
+		  tabvtx.clear();
+		  tabvty.clear();
+
+	  }
+  }
+ // std::cout << cpt;
+  myFile.close();
+}
+void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4, std::vector<char> &tabvx, std::vector<char> &tabvy, std::vector<char> &tabvz, std::vector<double> &tabv, std::vector<std::vector<double> > &taballv, std::vector<char> &tabvtx, std::vector<char> &tabvty, std::vector<double> &tabvt, std::vector<std::vector<double> > &taballvt){
+
+
     for (int i=0; i<600; i++) {
         for(int j=0; j<600; j++){
             zbuffer[i][j] = std::numeric_limits<int>::min();
@@ -242,7 +322,13 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
     }
     file.open("african_head.obj");
     file2.open("african_head.obj");
+    file3.open("african_head.obj");
+    file4.open("african_head.obj");
+
     getLineCoordV(file, tabvx, tabvy, tabvz, tabv, taballv);
+   // std::cout << "LA";
+    getLineCoordVt(file3, tabvtx, tabvty, tabvt, taballvt);
+   // std::cout << "LAAUSSI";
     //getLineCoordTexture(file3);
     /* Lecture du fichier pour recup les ligne vt avec u et v
     recup de f x/x/x et le deuxieme est la ligne correspondante.
@@ -253,6 +339,9 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
     std::vector<char> sommet1;
     std::vector<char> sommet2;
     std::vector<char> sommet3;
+    std::vector<char> couleursommet1;
+    std::vector<char> couleursommet2;
+    std::vector<char> couleursommet3;
     //int count = 0;
     while (!file2.eof())
     {
@@ -274,6 +363,16 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
 			  sommet1.push_back(c);
 			  i++;
 		  }
+		  i++;
+		  while (myString[i] != '/') {
+
+              char c = myString[i];
+
+    // Texture PREMIER SOMMET
+			  couleursommet1.push_back(c);
+			  i++;
+
+		  }
 		  while (myString[i] != ' ') {
 			  i++;
 		  }
@@ -286,12 +385,161 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
 			 sommet2.push_back(c);
 			  i++;
 		  }
+		  i++;
+		  while (myString[i] != '/') {
+			  char c = myString[i];
+    // texture DEUXIEME SOMMET
+			 couleursommet2.push_back(c);
+			  i++;
+		  }
 		  while (myString[i] != ' ') {
 			  i++;
 		  }
 		  while (myString[i] == ' ') {
 			  i++;
 		  }
+		  while (myString[i] != '/') {
+			  char c = myString[i];
+    // Troisieme SOMMET
+			 sommet3.push_back(c);
+			  i++;
+		  }
+		  i++;
+		  while (myString[i] != '/') {
+			  char c = myString[i];
+    // texture Troisieme SOMMET
+			 couleursommet3.push_back(c);
+			  i++;
+		  }
+
+        std::string strx(sommet1.begin(), sommet1.end());
+        std::string stry(sommet2.begin(), sommet2.end());
+        std::string strz(sommet3.begin(), sommet3.end());
+        std::string strvtx(couleursommet1.begin(), couleursommet1.end());
+        std::string strvty(couleursommet2.begin(), couleursommet2.end());
+        std::string strvtz(couleursommet3.begin(), couleursommet3.end());
+        std::istringstream isstx(strvtx);
+        std::istringstream issty(strvty);
+        std::istringstream isstz(strvtz);
+        std::istringstream issx(strx);
+        std::istringstream issy(stry);
+        std::istringstream issz(strz);
+        int nombre1;
+        int nombre2;
+        int nombre3;
+        int nombre1vt;
+        int nombre2vt;
+        int nombre3vt;
+        issx >> nombre1;
+        issy >> nombre2;
+        issz >> nombre3;
+        isstx >> nombre1vt;
+        issty >> nombre2vt;
+        isstz >> nombre3vt;
+
+        double Ax = taballv[nombre1-1][0];
+        double Ay = taballv[nombre1-1][1];
+        double Az = taballv[nombre1-1][2];
+       // std::cout << taballvt[nombre1vt-1][0] << " Atexturex " << std::endl;
+        double Atexturex = taballvt[nombre1vt-1][0];
+        double Atexturey = taballvt[nombre1vt-1][1];
+
+        double Bx = taballv[nombre2-1][0];
+        double By = taballv[nombre2-1][1];
+        double Bz = taballv[nombre2-1][2];
+        double Btexturex = taballvt[nombre2vt-1][0];
+        double Btexturey = taballvt[nombre2vt-1][1];
+
+        double Cx = taballv[nombre3-1][0];
+        double Cy = taballv[nombre3-1][1];
+        double Cz = taballv[nombre3-1][2];
+        double Ctexturex = taballvt[nombre3vt-1][0];
+        double Ctexturey = taballvt[nombre3vt-1][1];
+
+        barycentricFullMethod(Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, Atexturex, Atexturey, Btexturex, Btexturey, Ctexturex, Ctexturey, zbuffer);
+        //lineSweepingMethod(Ax,Ay,Bx,By,Cx,Cy);
+       // std::cout << "Triangle dessiné";
+       // drawTrikangle(Ax,Ay,Bx,By,Cx,Cy,white);
+
+        sommet1.clear();
+        sommet2.clear();
+        sommet3.clear();
+        couleursommet1.clear();
+        couleursommet2.clear();
+        couleursommet3.clear();
+
+	  }
+
+  }
+
+}
+
+
+
+
+
+/*void getTexture(ifstream &file3,ifstream &file4, std::vector<char> &tabvtx, std::vector<char> &tabvty, std::vector<int> &tabvt, std::vector<std::vector<int> > &taballvt){
+
+
+    std::vector<char> sommet1;
+    std::vector<char> sommet2;
+    std::vector<char> sommet3;
+
+    while (!file4.eof())
+    {
+        std::string myString;
+        getline(file4, myString);
+
+        //int taille = myString.size() & INT_MAX;
+	  if ((myString[0] == 'f') && (myString[1] == ' ')) {
+        myString.erase(myString.begin(),myString.begin()+2);
+		  int i = 0;
+		  while (myString[i] == ' ') {
+			  i++;
+        }
+		  while (myString[i] != '/') {
+              i++;
+
+		  }
+		  i++;
+		  while (myString[i] != '/') {
+
+              char c = myString[i];
+
+    // PREMIER SOMMET
+			  sommet1.push_back(c);
+			  i++;
+
+		  }
+
+		  while (myString[i] != ' ') {
+			  i++;
+		  }
+		  while (myString[i] == ' ') {
+			  i++;
+		  }
+		  while (myString[i] != '/') {
+
+			  i++;
+		  }
+		  i++;
+		  while (myString[i] != '/') {
+			  char c = myString[i];
+    // DEUXIEME SOMMET
+			 sommet2.push_back(c);
+			  i++;
+		  }
+		  while (myString[i] != ' ') {
+			  i++;
+		  }
+		  while (myString[i] == ' ') {
+			  i++;
+		  }
+		  while (myString[i] != '/') {
+
+			  i++;
+		  }
+		  i++;
 		  while (myString[i] != '/') {
 			  char c = myString[i];
     // Troisieme SOMMET
@@ -310,17 +558,17 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
         issx >> nombre1;
         issy >> nombre2;
         issz >> nombre3;
-        int Ax = taballv[nombre1-1][0];
-        int Ay = taballv[nombre1-1][1];
-        int Az = taballv[nombre1-1][2];
-        int Bx = taballv[nombre2-1][0];
-        int By = taballv[nombre2-1][1];
-        int Bz = taballv[nombre2-1][2];
-        int Cx = taballv[nombre3-1][0];
-        int Cy = taballv[nombre3-1][1];
-        int Cz = taballv[nombre3-1][2];
+        int Ax = taballvt[nombre1-1][0];
+        int Ay = taballvt[nombre1-1][1];
+        int Az = taballvt[nombre1-1][2];
+        int Bx = taballvt[nombre2-1][0];
+        int By = taballvt[nombre2-1][1];
+        int Bz = taballvt[nombre2-1][2];
+        int Cx = taballvt[nombre3-1][0];
+        int Cy = taballvt[nombre3-1][1];
+        int Cz = taballvt[nombre3-1][2];
 
-        barycentricFullMethod(Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, zbuffer);
+       // barycentricFullMethod(Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, zbuffer);
         //lineSweepingMethod(Ax,Ay,Bx,By,Cx,Cy);
        // std::cout << "Triangle dessiné";
        // drawTriangle(Ax,Ay,Bx,By,Cx,Cy,white);
@@ -332,26 +580,27 @@ void parsefile(ifstream &file, ifstream &file2, std::vector<char> &tabvx, std::v
 	  }
 
   }
-
-}
-
-
-
+}*/
 int main(int argc, char** argv) {
 
-    std::vector<char> tabvx;
-    std::vector<char> tabvy;
-    std::vector<char> tabvz;
-    std::vector<int> tabv;
-    std::vector<std::vector<int> > taballv;
+   // std::cout<< "SALUIT";
     int height;
     int width;
     TGAImage image(600, 600, TGAImage::RGB);
+    TGAImage imagetexture(1000,1000,TGAImage::RGB);
+    imagetexture.read_tga_file("african_head_diffuse.tga");
+   //TGAImage texture;
+    //texture.get_height();
+   // texture.read_tga_file("african_head_diffuse.tga");
     Img = &image;
+    Imgtexture = &imagetexture;
     ifstream file;
     ifstream file2;
     ifstream file3;
-    parsefile(file, file2, tabvx, tabvy, tabvz, tabv, taballv);
+    ifstream file4;
+    //getTexture(file3, file4, tabvtx, tabvty, tabvt, taballvt);
+    parsefile(file, file2,file3, file4, tabvx, tabvy, tabvz, tabv, taballv, tabvtx, tabvty, tabvt, taballvt);
+
     image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
     image.write_tga_file("output.tga");
     return 0;
