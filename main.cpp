@@ -156,7 +156,7 @@ void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> 
   myFile.close();
 }
 
-void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int Cx, int Cy, int Cz, double Atexturex, double Atexturey, double Btexturex, double Btexturey, double Ctexturex, double Ctexturey, int zbuffer[600][600]){
+void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By, double Bz, double Cx, double Cy, double Cz, double Atexturex, double Atexturey, double Btexturex, double Btexturey, double Ctexturex, double Ctexturey, int zbuffer[600][600]){
 
     int starty = std::max(std::max(Ay,By),Cy);
     int startx = std::min(std::min(Ax,Bx),Cx);
@@ -166,13 +166,14 @@ void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int C
 
     double denominateur = (((Bx-Ax)*(Cy-Ay))-((Cx-Ax)*(By-Ay)));
 
-
+   // Img->set(273, 235, red);
     double coeff = 1./denominateur;
    // TGAColor rndcolor = TGAColor(rand()%255, rand()%255, 255, 255);
 
        // cout << "Mon point de depart : " << startx << starty << "Mon point d'arrivée : " << endx << endy;
     for(int i = starty; i>=endy; i--){
         for(int j = startx; j<=endx;j++){
+
             int Px = j;
             int Py = i;
                 //image.set(Px, Py, red);
@@ -197,7 +198,17 @@ void barycentricFullMethod(int Ax, int Ay, int Az, int Bx, int By, int Bz, int C
                     int TextPy = (w*Atexturey+u*Btexturey+v*Ctexturey) * Imgtexture->get_height();
                   //  std::cout << Px << " x \n";
                   //  std::cout << Py;
-                    Img->set(Px, Py, Imgtexture->get(TextPx,TextPy));
+                    TGAColor colortest = Imgtexture->get(TextPx,TextPy);
+               //   if(Px == 273 && Py == 235){
+               //   std::cout << "Trou" << colortest.val;
+               //   }
+                   //
+                    //    std::cout << "Coord Atexturex  :" << Atexturex << " Coord Btexturex  : " << Btexturex << " Coord Ctexturex  : " << Ctexturex <<std::endl;
+                   //     std::cout << " valeur w : " << w << " valeur u :" << u << " valeur v " << v << std::endl;
+                   //     std::cout << "Coord x texture :" << TextPx << " Coord y texture :" << TextPy << std::endl;
+                   // }
+                    Img->set(Px, Py, colortest);
+
                 }
 
 
