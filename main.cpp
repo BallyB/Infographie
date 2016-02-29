@@ -25,26 +25,10 @@ std::vector<double> tabvt;
 std::vector<std::vector<double> > taballvt;
 std::vector<std::vector<double> > taballv;
 int zbuffer[600][600];
-
+double lightvector[3];
+double vecteurnormal[3];
 // COodonnees barycentrique
 
-/*
-On a Ax Ay
-Bx By
-Cx Cy
-
-on a notre point qu'on test Px Py
-je cherche u,v tel que P = (1-u-v)A + uB + vC)
-cette équation vient du repere cartésien
-Px = (1-u-v)Ax+ uBx + vCx
-Py = (1-u-v)Ay+ uBy + vCy
-On parcourt tout les pixels de l'image,
-On regarde les coordonnées barycentrique de ce pixel par rapport au triangle,
-si au moin un pixel est negatif alors on jette pixel
-
-
-
-*/
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     bool steep = false;
     if (std::abs(x0-x1)<std::abs(y0-y1)) {
@@ -131,6 +115,9 @@ void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> 
           double x = atof(strx.c_str());
           double y = atof(stry.c_str());
           double z = atof(strz.c_str());
+          x = x * 300;
+          y = y * 300;
+		  z = z * 300;
           x += 300;
 		  y += 300;
 		  z += 300;
@@ -164,6 +151,28 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
     int endy = std::min(std::min(Ay,By),Cy);
 
 
+
+    vecteurnormal[0] = (By-Ay)*(Cz-Az) - (Bz-Az)*(Cy-Ay);
+    vecteurnormal[1] = (Bz-Az)*(Cx-Ax) - (Bx-Ax)*(Cz-Az);
+    vecteurnormal[2] = (Bx-Ax)*(Cy-Ay) - (By-Ay)*(Cx-Ax);
+
+    lightvector[0] = 0;
+    lightvector[1] = 0;
+    lightvector[2] = 1;
+
+    // Normalisation lumière
+    double tmp = sqrt(lightvector[0]*lightvector[0] + lightvector[1]*lightvector[1] + lightvector[2]*lightvector[2]);
+    lightvector[0] /= tmp;
+    lightvector[1] /= tmp;
+    lightvector[2] /= tmp;
+   // std::cout << vecteurnormal[0] << " " << vecteurnormal[1] << " " << vecteurnormal[2] << std::endl;
+    //Normalisation vecteur triangle
+    double tmp2 = sqrt(vecteurnormal[0]*vecteurnormal[0] + vecteurnormal[1]*vecteurnormal[1] + vecteurnormal[2]*vecteurnormal[2]);
+    vecteurnormal[0] /= tmp2;
+    vecteurnormal[1] /= tmp2;
+    vecteurnormal[2] /= tmp2;
+   // std::cout << lightvector[0] << " " << lightvector[1] << " " << lightvector[2] << std::endl;
+    //std::cout << vecteurnormal[0] << " " << vecteurnormal[1] << " " << vecteurnormal[2] << std::endl;
     double denominateur = (((Bx-Ax)*(Cy-Ay))-((Cx-Ax)*(By-Ay)));
 
    // Img->set(273, 235, red);
@@ -198,6 +207,11 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
                     int TextPy = (w*Atexturey+u*Btexturey+v*Ctexturey) * Imgtexture->get_height();
                   //  std::cout << Px << " x \n";
                   //  std::cout << Py;
+                  double intensity = std::abs(vecteurnormal[0]*lightvector[0] + vecteurnormal[1]*lightvector[1] + vecteurnormal[2]*lightvector[2]);
+                  //std::cout << vecteurnormal[0]*lightvector[0] << " + " << vecteurnormal[1]*lightvector[1] << " + " << vecteurnormal[2]*lightvector[2] << " = " << intensity << std::endl;
+                 // std::cout << lightvector[0] << " " << lightvector[1] << " " << lightvector[2] << std::endl;
+                 // std::cout << vecteurnormal[0] << " " << vecteurnormal[1] << " " << vecteurnormal[2] << std::endl;
+                 // std::cout << intensity;
                     TGAColor colortest = Imgtexture->get(TextPx,TextPy);
                //   if(Px == 273 && Py == 235){
                //   std::cout << "Trou" << colortest.val;
@@ -207,7 +221,10 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
                    //     std::cout << " valeur w : " << w << " valeur u :" << u << " valeur v " << v << std::endl;
                    //     std::cout << "Coord x texture :" << TextPx << " Coord y texture :" << TextPy << std::endl;
                    // }
-                    Img->set(Px, Py, colortest);
+                  // TGAColor cl = TGAColor(255,255,255,255);
+
+                   TGAColor finalcolor = TGAColor(colortest.r*intensity, colortest.g*intensity, colortest.b*intensity, colortest.a*intensity);
+                    Img->set(Px, Py, finalcolor);
 
                 }
 
