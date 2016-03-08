@@ -8,7 +8,10 @@
 #include <sstream>
 #include <algorithm>
 #include <limits>
-
+#include "Matrix.h"
+#ifndef M_PI
+   #define M_PI 3.14159265358979323846
+#endif
 using std::ifstream;
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
@@ -24,6 +27,9 @@ std::vector<char> tabvty;
 std::vector<double> tabvt;
 std::vector<std::vector<double> > taballvt;
 std::vector<std::vector<double> > taballv;
+int widthimg = 600;
+int heightimg = 600;
+int depthimg = 600;
 int zbuffer[600][600];
 double lightvector[3];
 double vecteurnormal[3];
@@ -115,12 +121,12 @@ void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> 
           double x = atof(strx.c_str());
           double y = atof(stry.c_str());
           double z = atof(strz.c_str());
-          x = x * 300;
+        /*  x = x * 300;
           y = y * 300;
 		  z = z * 300;
           x += 300;
 		  y += 300;
-		  z += 300;
+		  z += 300;*/
 		  tabv.push_back(x);
 		  tabv.push_back(y);
 		  tabv.push_back(z);
@@ -143,15 +149,71 @@ void getLineCoordV(ifstream &myFile,std::vector<char> &tabvx, std::vector<char> 
   myFile.close();
 }
 
+Matrix viewport(int width, int height, int depth) {
+    Matrix m(4,4);
+    m[0][3] = width/2.f;
+    m[1][3] = height/2.f;
+    m[2][3] = depth/2.f;
+
+    m[0][0] = width/2.f;
+    m[1][1] = height/2.f;
+    m[2][2] = depth/2.f;
+    m[3][3] = 1;
+    return m;
+}
+
+Matrix rotation(int alpha){
+    Matrix m(4,4);
+    int angleradient = alpha*M_PI/180;
+    m[0][0] = std::cos(angleradient);
+
+
+}
+
 void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By, double Bz, double Cx, double Cy, double Cz, double Atexturex, double Atexturey, double Btexturex, double Btexturey, double Ctexturex, double Ctexturey, int zbuffer[600][600]){
 
+
+
+
+    Matrix m1(4,1);
+    Matrix m2(4,1);
+    Matrix m3(4,1);
+    m1[0][0] = Ax;
+    m1[1][0] = Ay;
+    m1[2][0] = Az;
+    m1[3][0] = 1;
+
+    m2[0][0] = Bx;
+    m2[1][0] = By;
+    m2[2][0] = Bz;
+    m2[3][0] = 1;
+
+    m3[0][0] = Cx;
+    m3[1][0] = Cy;
+    m3[2][0] = Cz;
+    m3[3][0] = 1;
+
+    Matrix viewporttest = viewport(widthimg, heightimg, depthimg);
+
+    m1 = viewporttest*m1;
+    m2 = viewporttest*m2;
+    m3 = viewporttest*m3;
+
+    Ax = m1[0][0];
+    Ay = m1[1][0];
+    Az = m1[2][0];
+
+    Bx = m2[0][0];
+    By = m2[1][0];
+    Bz = m2[2][0];
+
+    Cx = m3[0][0];
+    Cy = m3[1][0];
+    Cz = m3[2][0];
     int starty = std::max(std::max(Ay,By),Cy);
     int startx = std::min(std::min(Ax,Bx),Cx);
     int endx = std::max(std::max(Ax,Bx),Cx);
     int endy = std::min(std::min(Ay,By),Cy);
-
-
-
     vecteurnormal[0] = (By-Ay)*(Cz-Az) - (Bz-Az)*(Cy-Ay);
     vecteurnormal[1] = (Bz-Az)*(Cx-Ax) - (Bx-Ax)*(Cz-Az);
     vecteurnormal[2] = (Bx-Ax)*(Cy-Ay) - (By-Ay)*(Cx-Ax);
@@ -624,8 +686,7 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
 int main(int argc, char** argv) {
 
    // std::cout<< "SALUIT";
-    int height;
-    int width;
+
     TGAImage image(600, 600, TGAImage::RGB);
     TGAImage imagetexture(1000,1000,TGAImage::RGB);
     imagetexture.read_tga_file("african_head_diffuse.tga");
