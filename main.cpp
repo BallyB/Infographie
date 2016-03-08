@@ -178,8 +178,12 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
 
     Matrix viewporttest = viewport(widthimg, heightimg, depthimg);
     Matrix rotates = rotation(90);
-    viewporttest = viewporttest*rotates;
 
+    Matrix Projection = Matrix::identity(4);
+    Projection[3][2] = -1.f/0.9;
+   // std::cout << Projection;
+    viewporttest = viewporttest*Projection*rotates;
+   // std::cout << viewporttest;
     Matrix m1(4,1);
     Matrix m2(4,1);
     Matrix m3(4,1);
@@ -204,21 +208,26 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
     m2 = viewporttest*m2;
     m3 = viewporttest*m3;
 
-    Ax = m1[0][0];
-    Ay = m1[1][0];
-    Az = m1[2][0];
+    Ax = m1[0][0]/m1[3][0];
+    Ay = m1[1][0]/m1[3][0];
+    Az = m1[2][0]/m1[3][0];
 
-    Bx = m2[0][0];
-    By = m2[1][0];
-    Bz = m2[2][0];
+    Bx = m2[0][0]/m2[3][0];
+    By = m2[1][0]/m2[3][0];
+    Bz = m2[2][0]/m2[3][0];
 
-    Cx = m3[0][0];
-    Cy = m3[1][0];
-    Cz = m3[2][0];
+    Cx = m3[0][0]/m3[3][0];
+    Cy = m3[1][0]/m3[3][0];
+    Cz = m3[2][0]/m3[3][0];
+
     int starty = std::max(std::max(Ay,By),Cy);
     int startx = std::min(std::min(Ax,Bx),Cx);
     int endx = std::max(std::max(Ax,Bx),Cx);
     int endy = std::min(std::min(Ay,By),Cy);
+    starty = std::min(starty,heightimg);
+    endx = std::min(endx, heightimg);
+    startx = std::max(0, startx);
+    endy = std::max(0, endy);
     vecteurnormal[0] = (By-Ay)*(Cz-Az) - (Bz-Az)*(Cy-Ay);
     vecteurnormal[1] = (Bz-Az)*(Cx-Ax) - (Bx-Ax)*(Cz-Az);
     vecteurnormal[2] = (Bx-Ax)*(Cy-Ay) - (By-Ay)*(Cx-Ax);
