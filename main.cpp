@@ -194,10 +194,10 @@ Matrix rotation(int alpha){
 void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By, double Bz, double Cx, double Cy, double Cz, double Atexturex, double Atexturey, double Btexturex, double Btexturey, double Ctexturex, double Ctexturey, double Avecteurx, double Avecteury, double Avecteurz,double Bvecteurx, double Bvecteury, double Bvecteurz,double Cvecteurx,double Cvecteury,double Cvecteurz, int zbuffer[600][600]){
 
     Matrix viewporttest = viewport(widthimg, heightimg, depthimg);
-    Matrix rotates = rotation(60);
+    Matrix rotates = rotation(0);
 
     Matrix Projection = Matrix::identity(4);
-    Projection[3][2] = -1.f/0.95;
+    Projection[3][2] = -1.f/10;
    // std::cout << Projection;
     viewporttest = viewporttest*Projection*rotates;
    // std::cout << viewporttest;
