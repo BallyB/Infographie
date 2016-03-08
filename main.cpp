@@ -164,16 +164,21 @@ Matrix viewport(int width, int height, int depth) {
 
 Matrix rotation(int alpha){
     Matrix m(4,4);
-    int angleradient = alpha*M_PI/180;
+    double angleradient = alpha*M_PI/180;
     m[0][0] = std::cos(angleradient);
-
-
+    m[1][1] = 1;
+    m[2][2] = std::cos(angleradient);
+    m[3][3] = 1;
+    m[2][0] = -std::sin(angleradient);
+    m[0][2] = std::sin(angleradient);
+    return m;
 }
 
 void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By, double Bz, double Cx, double Cy, double Cz, double Atexturex, double Atexturey, double Btexturex, double Btexturey, double Ctexturex, double Ctexturey, int zbuffer[600][600]){
 
-
-
+    Matrix viewporttest = viewport(widthimg, heightimg, depthimg);
+    Matrix rotates = rotation(90);
+    viewporttest = viewporttest*rotates;
 
     Matrix m1(4,1);
     Matrix m2(4,1);
@@ -193,7 +198,7 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
     m3[2][0] = Cz;
     m3[3][0] = 1;
 
-    Matrix viewporttest = viewport(widthimg, heightimg, depthimg);
+
 
     m1 = viewporttest*m1;
     m2 = viewporttest*m2;
