@@ -18,6 +18,7 @@ using std::ifstream;
 TGAImage* Img;
 TGAImage* Imgtexture;
 TGAImage* imgnm;
+TGAImage* imgspecmap;
 std::vector<char> tabvx;
 std::vector<char> tabvy;
 std::vector<char> tabvz;
@@ -51,6 +52,7 @@ int depthimg = 600;
 int zbuffer[600][600];
 double lightvector[3];
 double vecteurnormal[3];
+double r[3];
 // COodonnees barycentrique
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
@@ -258,12 +260,9 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
     lightvector[0] /= tmp;
     lightvector[1] /= tmp;
     lightvector[2] /= tmp;
-   // std::cout << vecteurnormal[0] << " " << vecteurnormal[1] << " " << vecteurnormal[2] << std::endl;
 
-   // std::cout << lightvector[0] << " " << lightvector[1] << " " << lightvector[2] << std::endl;
-    //std::cout << vecteurnormal[0] << " " << vecteurnormal[1] << " " << vecteurnormal[2] << std::endl;
     double denominateur = (((Bx-Ax)*(Cy-Ay))-((Cx-Ax)*(By-Ay)));
-
+    double constantescalaire;
    // Img->set(273, 235, red);
     double coeff = 1./denominateur;
    // TGAColor rndcolor = TGAColor(rand()%255, rand()%255, 255, 255);
@@ -316,10 +315,27 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
                     vecteurnormal[2] /= tmp2;
                   //  std::cout << Px << " x \n";
                   //  std::cout << Py;
+                  constantescalaire = vecteurnormal[0]*lightvector[0] + vecteurnormal[1]*lightvector[1] + vecteurnormal[2]*lightvector[2];
+                  constantescalaire*= 2;
+                  r[0] = vecteurnormal[0];
+                  r[1] = vecteurnormal[1];
+                  r[2] = vecteurnormal[2];
+                  r[0] *= constantescalaire;
+                  r[1] *= constantescalaire;
+                  r[2] *= constantescalaire;
+                  r[0] -= lightvector[0];
+                  r[1] -= lightvector[1];
+                  r[2] -= lightvector[2];
+                    double tmp3 = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
+                    r[0] /= tmp3;
+                    r[1] /= tmp3;
+                    r[2] /= tmp3;
+                    TGAColor colorspec= imgspecmap->get(TextPx,TextPy);
+                  double spec = pow(std::max(r[2], 0.0), colorspec.b);
                   double intensity = std::max(0.,(vecteurnormal[0]*lightvector[0] + vecteurnormal[1]*lightvector[1] + vecteurnormal[2]*lightvector[2]));
 
                    TGAColor colortest = Imgtexture->get(TextPx,TextPy);
-                   TGAColor finalcolor = TGAColor(colortest.r*intensity, colortest.g*intensity, colortest.b*intensity, colortest.a*intensity);
+                   TGAColor finalcolor = TGAColor(std::min<float>(5 + colortest.r*(intensity + .6*spec), 255), std::min<float>(5 + colortest.g*(intensity + .6*spec), 255), std::min<float>(5 + colortest.b*(intensity + .6*spec), 255), 0);
                     Img->set(Px, Py, finalcolor);
 
                 }
@@ -704,14 +720,18 @@ int main(int argc, char** argv) {
     TGAImage image(600, 600, TGAImage::RGB);
     TGAImage imagetexture(1000,1000,TGAImage::RGB);
     TGAImage imagenm(1000,1000,TGAImage::RGB);
+    TGAImage imagespecmapping(1000,1000,TGAImage::RGB);
     imagetexture.read_tga_file("african_head_diffuse.tga");
     imagenm.read_tga_file("african_head_nm.tga");
+    imagespecmapping.read_tga_file("african_head_spec.tga");
    //TGAImage texture;
     //texture.get_height();
    // texture.read_tga_file("african_head_diffuse.tga");
     Img = &image;
     imagetexture.flip_vertically();
     imagenm.flip_vertically();
+    imagespecmapping.flip_vertically();
+    imgspecmap = &imagespecmapping;
     Imgtexture = &imagetexture;
     imgnm = &imagenm;
     ifstream file;
