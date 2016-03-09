@@ -17,6 +17,7 @@ using std::ifstream;
 
 TGAImage* Img;
 TGAImage* Imgtexture;
+TGAImage* imgnm;
 std::vector<char> tabvx;
 std::vector<char> tabvy;
 std::vector<char> tabvz;
@@ -194,10 +195,10 @@ Matrix rotation(int alpha){
 void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By, double Bz, double Cx, double Cy, double Cz, double Atexturex, double Atexturey, double Btexturex, double Btexturey, double Ctexturex, double Ctexturey, double Avecteurx, double Avecteury, double Avecteurz,double Bvecteurx, double Bvecteury, double Bvecteurz,double Cvecteurx,double Cvecteury,double Cvecteurz, int zbuffer[600][600]){
 
     Matrix viewporttest = viewport(widthimg, heightimg, depthimg);
-    Matrix rotates = rotation(0);
+    Matrix rotates = rotation(330);
 
     Matrix Projection = Matrix::identity(4);
-    Projection[3][2] = -1.f/10;
+    Projection[3][2] = -1.f/1000;
    // std::cout << Projection;
     viewporttest = viewporttest*Projection*rotates;
    // std::cout << viewporttest;
@@ -248,9 +249,9 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
 
 
 
-    lightvector[0] = 0;
-    lightvector[1] = 0;
-    lightvector[2] = 1;
+    lightvector[0] = 1;
+    lightvector[1] = 1;
+    lightvector[2] = 0;
 
     // Normalisation lumière
     double tmp = sqrt(lightvector[0]*lightvector[0] + lightvector[1]*lightvector[1] + lightvector[2]*lightvector[2]);
@@ -291,22 +292,28 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
 
                 }else{
                     zbuffer[Px][Py] = Pz;
-                    vecteurnormal[0] = w*Avecteurx+u*Bvecteurx+v*Cvecteurx;
-                    vecteurnormal[1] = w*Avecteury+u*Bvecteury+v*Cvecteury;
+                    //vecteurnormal[0] = w*Avecteurx+u*Bvecteurx+v*Cvecteurx;
+                   // vecteurnormal[1] = w*Avecteury+u*Bvecteury+v*Cvecteury;
                     //(By-Ay)*(Cz-Az) - (Bz-Az)*(Cy-Ay);
                     //vecteurnormal[1] = (Bz-Az)*(Cx-Ax) - (Bx-Ax)*(Cz-Az);
-                    vecteurnormal[2] = w*Avecteurz+u*Bvecteurz+v*Cvecteurz;
+                    //vecteurnormal[2] = w*Avecteurz+u*Bvecteurz+v*Cvecteurz;
+
                     //(Bx-Ax)*(Cy-Ay) - (By-Ay)*(Cx-Ax);
                     //Normalisation vecteur triangle
-                    double tmp2 = sqrt(vecteurnormal[0]*vecteurnormal[0] + vecteurnormal[1]*vecteurnormal[1] + vecteurnormal[2]*vecteurnormal[2]);
-                    vecteurnormal[0] /= tmp2;
-                    vecteurnormal[1] /= tmp2;
-                    vecteurnormal[2] /= tmp2;
+
 
 
 
                     int TextPx = (w*Atexturex+u*Btexturex+v*Ctexturex) * Imgtexture->get_width();
                     int TextPy = (w*Atexturey+u*Btexturey+v*Ctexturey) * Imgtexture->get_height();
+                    TGAColor clrpix= imgnm->get(TextPx,TextPy);
+                    vecteurnormal[0] = clrpix.r;
+                    vecteurnormal[1] = clrpix.g;
+                    vecteurnormal[2] = clrpix.b;
+                    double tmp2 = sqrt(vecteurnormal[0]*vecteurnormal[0] + vecteurnormal[1]*vecteurnormal[1] + vecteurnormal[2]*vecteurnormal[2]);
+                    vecteurnormal[0] /= tmp2;
+                    vecteurnormal[1] /= tmp2;
+                    vecteurnormal[2] /= tmp2;
                   //  std::cout << Px << " x \n";
                   //  std::cout << Py;
                   double intensity = std::max(0.,(vecteurnormal[0]*lightvector[0] + vecteurnormal[1]*lightvector[1] + vecteurnormal[2]*lightvector[2]));
@@ -334,11 +341,15 @@ void drawTriangle(int Ax, int Ay, int Bx, int By, int Cx, int Cy, TGAColor color
 
 }
 void getLineCoordVn(ifstream &myFile){
+    double nombrex;
+    double nombrey;
+    double nombrez;
+    std::string myString;
     while (!myFile.eof())
     {
-      std::string myString;
+
       getline(myFile, myString);
-	  int taille = myString.size() & INT_MAX;
+	 //int taille = myString.size() & INT_MAX;
 	  if ((myString[0] == 'v') && (myString[1] == 'n') && (myString[2] == ' ')) {
         myString.erase(myString.begin(),myString.begin()+3);
 		  int i = 0;
@@ -370,9 +381,9 @@ void getLineCoordVn(ifstream &myFile){
 		  std::string strx(tabvnx.begin(), tabvnx.end());
 		  std::string stry(tabvny.begin(), tabvny.end());
 		  std::string strz(tabvnz.begin(), tabvnz.end());
-          double nombrex = atof(strx.c_str());
-          double nombrey = atof(stry.c_str());
-          double nombrez = atof(strz.c_str());
+          nombrex = atof(strx.c_str());
+          nombrey = atof(stry.c_str());
+          nombrez = atof(strz.c_str());
 
 		  tabvn.push_back(nombrex);
 		  tabvn.push_back(nombrey);
@@ -390,14 +401,17 @@ void getLineCoordVn(ifstream &myFile){
 }
 void getLineCoordVt(ifstream &myFile){
 //int cpt = 0;
+    double nombrex;
+    double nombrey;
+    std::string myString;
     while (!myFile.eof())
     {
 
-        std::string myString;
+
         getline(myFile, myString);
 
 
-	  int taille = myString.size() & INT_MAX;
+	  //int taille = myString.size() & INT_MAX;
       //std::cout<<myString[1];
 	  if ((myString[0] == 'v') && (myString[1] == 't') && (myString[2] == ' ')) {
       //  cpt++;//std::cout << "la ta mere";
@@ -428,8 +442,8 @@ void getLineCoordVt(ifstream &myFile){
 		 // int nombrey;
 		  //issx >> nombrex;
 		//  issy >> nombrey;
-          double nombrex = atof(strx.c_str());
-          double nombrey = atof(stry.c_str());
+          nombrex = atof(strx.c_str());
+          nombrey = atof(stry.c_str());
        //   nombrex *= 600;
 		//  nombrey *= 600;
 		  //std::cout << nombrex << " nombre x et "<< nombrey << " nombre y"<< std::endl;
@@ -499,15 +513,20 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
     recup de f x/x/x et le deuxieme est la ligne correspondante.
     u et v sont les coord du point dans la texture : utiliser read_tga_file pour ouvrir la texture*/
 
-
-
-
-    //int count = 0;
-  //  int cpt = 0;
+    int nombre1;
+    int nombre2;
+    int nombre3;
+    int nombre1vt;
+    int nombre2vt;
+    int nombre3vt;
+    int nombre1vn;
+    int nombre2vn;
+    int nombre3vn;
+    std::string myString;
     while (!file2.eof())
     {
        // std::cout << "ligne fini";
-        std::string myString;
+
         getline(file2, myString);
 
         //int taille = myString.size() & INT_MAX;
@@ -533,6 +552,7 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
     // Texture PREMIER SOMMET
 			  couleursommet1.push_back(c);
 			  i++;
+
 
 		  }
 		  i++;
@@ -615,15 +635,7 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
         std::istringstream issnx(strvnx);
         std::istringstream issny(strvny);
         std::istringstream issnz(strvnz);
-        int nombre1;
-        int nombre2;
-        int nombre3;
-        int nombre1vt;
-        int nombre2vt;
-        int nombre3vt;
-        int nombre1vn;
-        int nombre2vn;
-        int nombre3vn;
+
         issx >> nombre1;
         issy >> nombre2;
         issz >> nombre3;
@@ -633,34 +645,34 @@ void parsefile(ifstream &file, ifstream &file2, ifstream &file3,ifstream &file4,
         issnx >> nombre1vn;
         issny >> nombre2vn;
         issnz >> nombre3vn;
-        double Ax = taballv[nombre1-1][0];
-        double Ay = taballv[nombre1-1][1];
-        double Az = taballv[nombre1-1][2];
-        double Atexturex = taballvt[nombre1vt-1][0];
-        double Atexturey = taballvt[nombre1vt-1][1];
+        Ax = taballv[nombre1-1][0];
+        Ay = taballv[nombre1-1][1];
+        Az = taballv[nombre1-1][2];
+        Atexturex = taballvt[nombre1vt-1][0];
+        Atexturey = taballvt[nombre1vt-1][1];
        //std::cout << taballvn[nombre1vn-1][0] << "  ";
-        double Avecteurx = taballvn[nombre1vn-1][0];
-        double Avecteury = taballvn[nombre1vn-1][1];
-        double Avecteurz = taballvn[nombre1vn-1][2];
+        Avecteurx = taballvn[nombre1vn-1][0];
+        Avecteury = taballvn[nombre1vn-1][1];
+        Avecteurz = taballvn[nombre1vn-1][2];
 
-        double Bx = taballv[nombre2-1][0];
-        double By = taballv[nombre2-1][1];
-        double Bz = taballv[nombre2-1][2];
-        double Btexturex = taballvt[nombre2vt-1][0];
-        double Btexturey = taballvt[nombre2vt-1][1];
-        double Bvecteurx = taballvn[nombre2vn-1][0];
-        double Bvecteury = taballvn[nombre2vn-1][1];
-        double Bvecteurz = taballvn[nombre2vn-1][2];
+        Bx = taballv[nombre2-1][0];
+        By = taballv[nombre2-1][1];
+        Bz = taballv[nombre2-1][2];
+        Btexturex = taballvt[nombre2vt-1][0];
+        Btexturey = taballvt[nombre2vt-1][1];
+        Bvecteurx = taballvn[nombre2vn-1][0];
+        Bvecteury = taballvn[nombre2vn-1][1];
+        Bvecteurz = taballvn[nombre2vn-1][2];
 
 
-        double Cx = taballv[nombre3-1][0];
-        double Cy = taballv[nombre3-1][1];
-        double Cz = taballv[nombre3-1][2];
-        double Ctexturex = taballvt[nombre3vt-1][0];
-        double Ctexturey = taballvt[nombre3vt-1][1];
-        double Cvecteurx = taballvn[nombre3vn-1][0];
-        double Cvecteury = taballvn[nombre3vn-1][1];
-        double Cvecteurz = taballvn[nombre3vn-1][2];
+        Cx = taballv[nombre3-1][0];
+        Cy = taballv[nombre3-1][1];
+        Cz = taballv[nombre3-1][2];
+        Ctexturex = taballvt[nombre3vt-1][0];
+        Ctexturey = taballvt[nombre3vt-1][1];
+        Cvecteurx = taballvn[nombre3vn-1][0];
+        Cvecteury = taballvn[nombre3vn-1][1];
+        Cvecteurz = taballvn[nombre3vn-1][2];
 
         barycentricFullMethod(Ax, Ay, Az, Bx, By, Bz, Cx, Cy, Cz, Atexturex, Atexturey, Btexturex, Btexturey, Ctexturex, Ctexturey, Avecteurx, Avecteury, Avecteurz, Bvecteurx, Bvecteury, Bvecteurz, Cvecteurx, Cvecteury, Cvecteurz, zbuffer);
         //lineSweepingMethod(Ax,Ay,Bx,By,Cx,Cy);
@@ -691,13 +703,17 @@ int main(int argc, char** argv) {
 
     TGAImage image(600, 600, TGAImage::RGB);
     TGAImage imagetexture(1000,1000,TGAImage::RGB);
+    TGAImage imagenm(1000,1000,TGAImage::RGB);
     imagetexture.read_tga_file("african_head_diffuse.tga");
+    imagenm.read_tga_file("african_head_nm.tga");
    //TGAImage texture;
     //texture.get_height();
    // texture.read_tga_file("african_head_diffuse.tga");
     Img = &image;
     imagetexture.flip_vertically();
+    imagenm.flip_vertically();
     Imgtexture = &imagetexture;
+    imgnm = &imagenm;
     ifstream file;
     ifstream file2;
     ifstream file3;
