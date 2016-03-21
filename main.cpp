@@ -288,7 +288,7 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
 
                 r2[0] = vecteurnormal[0];
                 r2[1] = vecteurnormal[1];
-                r2[3] = vecteurnormal[2];
+                r2[2] = vecteurnormal[2];
                 r2[0] *= constantescalaire2;
                 r2[1] *= constantescalaire2;
                 r2[2] *= constantescalaire2;
