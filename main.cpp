@@ -14,7 +14,7 @@
 #endif
 using std::ifstream;
 
-
+const TGAColor white = TGAColor(255,255,255,255);
 TGAImage* Img;
 TGAImage* Imgtexture;
 TGAImage* imgnm;
@@ -51,9 +51,10 @@ int heightimg = 600;
 int depthimg = 600;
 int zbuffer[600][600];
 double lightvector[3];
+double lightvector2[3];
 double vecteurnormal[3];
 double r[3];
-
+double r2[3];
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     bool steep = false;
@@ -227,14 +228,25 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
     lightvector[1] = 1;
     lightvector[2] = 0;
 
+    lightvector2[0] = 0;
+    lightvector2[1] = 1;
+    lightvector2[2] = 1;
+
     // Normalisation lumière
     double tmp = sqrt(lightvector[0]*lightvector[0] + lightvector[1]*lightvector[1] + lightvector[2]*lightvector[2]);
     lightvector[0] /= tmp;
     lightvector[1] /= tmp;
     lightvector[2] /= tmp;
 
+    double tmp8 = sqrt(lightvector2[0]*lightvector2[0] + lightvector2[1]*lightvector2[1] + lightvector2[2]*lightvector2[2]);
+    lightvector2[0] /= tmp8;
+    lightvector2[1] /= tmp8;
+    lightvector2[2] /= tmp8;
+
+
     double denominateur = (((Bx-Ax)*(Cy-Ay))-((Cx-Ax)*(By-Ay)));
     double constantescalaire;
+    double constantescalaire2;
     double coeff = 1./denominateur;
 
     for(int i = starty; i>=endy; i--){
@@ -269,9 +281,23 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
                 vecteurnormal[0] /= tmp2;
                 vecteurnormal[1] /= tmp2;
                 vecteurnormal[2] /= tmp2;
-
+                constantescalaire2 = vecteurnormal[0]*lightvector2[0] + vecteurnormal[1]*lightvector2[1] + vecteurnormal[2]*lightvector2[2];
                 constantescalaire = vecteurnormal[0]*lightvector[0] + vecteurnormal[1]*lightvector[1] + vecteurnormal[2]*lightvector[2];
+                constantescalaire2*=2;
                 constantescalaire*= 2;
+
+                r2[0] = vecteurnormal[0];
+                r2[1] = vecteurnormal[1];
+                r2[3] = vecteurnormal[2];
+                r2[0] *= constantescalaire2;
+                r2[1] *= constantescalaire2;
+                r2[2] *= constantescalaire2;
+                r2[0] -= lightvector2[0];
+                r2[1] -= lightvector2[1];
+                r2[2] -= lightvector2[2];
+
+
+
                 r[0] = vecteurnormal[0];
                 r[1] = vecteurnormal[1];
                 r[2] = vecteurnormal[2];
@@ -282,6 +308,12 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
                 r[1] -= lightvector[1];
                 r[2] -= lightvector[2];
 
+
+                double tmp9 = sqrt(r2[0]*r2[0] + r2[1]*r2[1] + r2[2]*r2[2]);
+                r2[0] /= tmp9;
+                r2[1] /= tmp9;
+                r2[2] /= tmp9;
+
                 double tmp3 = sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
                 r[0] /= tmp3;
                 r[1] /= tmp3;
@@ -289,10 +321,12 @@ void barycentricFullMethod(double Ax, double Ay, double Az, double Bx, double By
 
                 TGAColor colorspec= imgspecmap->get(TextPx,TextPy);
                 double spec = pow(std::max(r[2], 0.0), colorspec.b);
+                double spec2 = pow(std::max(r2[2], 0.0), colorspec.b);
                 double intensity = std::max(0.,(vecteurnormal[0]*lightvector[0] + vecteurnormal[1]*lightvector[1] + vecteurnormal[2]*lightvector[2]));
-
-                TGAColor colortest = Imgtexture->get(TextPx,TextPy);
-                TGAColor finalcolor = TGAColor(std::min<float>(5 + colortest.r*(intensity + .6*spec), 255), std::min<float>(5 + colortest.g*(intensity + .6*spec), 255), std::min<float>(5 + colortest.b*(intensity + .6*spec), 255), 0);
+                double intensity2 = std::max(0.,(vecteurnormal[0]*lightvector2[0]+ vecteurnormal[1]*lightvector2[1] + vecteurnormal[2]*lightvector2[2]));
+                //TGAColor colortest = Imgtexture->get(TextPx,TextPy);
+                TGAColor colortest = white;
+                TGAColor finalcolor = TGAColor(std::min<float>(5 + colortest.r*(intensity + .6*spec), 255), std::min<float>(5 + colortest.g*(intensity + .6*spec), 255), std::min<float>(5 + colortest.b*(intensity2 + .6*spec2), 255), 0);
                 Img->set(Px, Py, finalcolor);
 
                 }
